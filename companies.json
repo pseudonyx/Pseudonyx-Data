@@ -1,6 +1,7 @@
 ﻿{
-  "version": 1.3,
+  "version": 1.4,
   "last_updated": "2026-05-11",
+  "update_message": "Welcome to Pseudonyx. This is the built-in starter list of AI websites we protect. When we publish an update, this message will explain what changed \u2014 new tools we added and what's now protected. You can review or turn off any company in Settings \u25B8 Companies.",
   "data": [
   { "company": "OpenAI", "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "platform.openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"] },
   { "company": "Anthropic", "redact": true, "hosts": ["claude.ai", "anthropic.com", "console.anthropic.com"], "titles": ["Claude"] },
