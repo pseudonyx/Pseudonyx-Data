@@ -2,7 +2,7 @@
   "version": 1,
   "last_updated": "2026-07-10",
   "data": [
-  { "company": "OpenAI", "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "platform.openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"] },
+  { "company": "OpenAII", "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "platform.openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"] },
   { "company": "Anthropic", "redact": true, "hosts": ["claude.ai", "anthropic.com", "console.anthropic.com"], "titles": ["Claude"] },
   { "company": "Google Gemini", "redact": true, "hosts": ["gemini.google.com", "bard.google.com", "aistudio.google.com", "notebooklm.google.com", "labs.google"], "titles": ["Gemini", "Bard", "AI Studio", "NotebookLM"] },
   { "company": "Microsoft Copilot", "redact": true, "hosts": ["copilot.microsoft.com", "m365.cloud.microsoft", "edgeservices.bing.com"], "titles": ["Copilot", "Microsoft Copilot"] },
