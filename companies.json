@@ -1,6 +1,6 @@
 ﻿{
   "version": 1.2,
-  "last_updated": "2026-07-10",
+  "last_updated": "2026-07-11",
   "data": [
   { "company": "guillaume", "redact": true, "hosts": ["guillaume.com"], "titles": ["guillaume Chat"] },
   { "company": "OpenAI", "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "platform.openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"] },
