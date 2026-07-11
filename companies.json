@@ -1,8 +1,7 @@
 ﻿{
-  "version": 1.2,
-  "last_updated": "2026-07-11",
+  "version": 1.3,
+  "last_updated": "2026-05-11",
   "data": [
-  { "company": "guillaume", "redact": true, "hosts": ["guillaume.com"], "titles": ["guillaume Chat"] },
   { "company": "OpenAI", "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "platform.openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"] },
   { "company": "Anthropic", "redact": true, "hosts": ["claude.ai", "anthropic.com", "console.anthropic.com"], "titles": ["Claude"] },
   { "company": "Google Gemini", "redact": true, "hosts": ["gemini.google.com", "bard.google.com", "aistudio.google.com", "notebooklm.google.com", "labs.google"], "titles": ["Gemini", "Bard", "AI Studio", "NotebookLM"] },
