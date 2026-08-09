@@ -1,19 +1,20 @@
 ﻿{
-  "version": 3.8,
-  "last_updated": "2026-07-31",
-  "update_message": "Pseudonyx list 3.8 brings two things together. First, seven AI chat services join your protection: Alibaba Quark, LMArena, Monica, Replika, PolyBuzz, Candy.AI and OurDream. Two services that moved house are followed as well, so Zhipu ChatGLM is now covered on z.ai and chat.z.ai, and Sber GigaChat on giga.chat. That brings the list to 349 services across 460 websites. Second, a silent flaw in this very file is repaired. The window titles used to recognise Chinese, Korean, Japanese and Russian AI applications had been saved through the wrong text encoding, so their characters were scrambled and could never match. Recognition by website address still worked, which is why nothing looked broken, but title recognition for sixteen services, among them Ernie, Doubao, Qwen, Tongyi, Yuanbao, ChatGLM, CLOVA X, GigaChat and Yandex Alice, was simply dead. It works now. The application itself also had unreadable characters in a few places and empty rectangles instead of small icons in some notifications, all corrected in version 1.5.64, along with a Mexican identity number alphabet that had lost a letter and was failing its own checksum test.",
+  "version": 5.9,
+  "last_updated": "2026-08-17",
+  "update_message": "Pseudonyx 1.5.86 can now tell you what it costs to run on your own computer. A new measurement writes down how much memory and how much time each setting actually uses, on your machine rather than ours, and the answers are published so you can choose settings knowing the trade instead of guessing. The short version: if your computer has 4 GB of memory, set redaction quality to Fast. Every check based on a pattern or a checksum still runs, so emails, phone numbers, bank accounts, cards, national numbers and IP addresses are all still caught. Your saved redactions also stop growing after five days, so the folder they live in settles at a size and stays there. Nothing about detection or redaction changed.",
+  "previous_update_message": "Pseudonyx 1.5.85 makes the first screen you ever see easier to read. The consent window now uses the same large title as the rest of the app, its heading and its opening paragraph line up on one left edge instead of two, and the agreement box is taller so you can read a whole clause without scrolling. The optional usage analytics box is now separated from the clauses you have to agree to by a line and the word optional, so it is obvious which ticks are required and which one is your choice. Nothing about detection or redaction changed.",
   "software": {
-    "latest_version": "1.5.66",
+    "latest_version": "1.7.16",
     "download_url": "https://github.com/guillaumedeclercq08040804-rgb/ClipboardGuardian/releases/latest"
   },
   "extension": {
-    "latest_version": "0.8.8",
+    "latest_version": "0.10.15",
     "download_url": "https://github.com/guillaumedeclercq08040804-rgb/ClipboardGuardian/tree/v36/extension"
   },
   "data": [
-  { "company": "OpenAI", "verified": true, "verified_app": true, "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "platform.openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"],
+  { "company": "OpenAI", "verified": true, "verified_app": true, "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"],
     "apps": { "processes": ["ChatGPT"], "products": ["ChatGPT"], "packages": ["OpenAI.ChatGPT-Desktop"] } },
-  { "company": "Anthropic", "verified": true, "verified_app": true, "redact": true, "hosts": ["claude.ai", "claude.com", "anthropic.com", "console.anthropic.com", "platform.claude.com"], "titles": ["Claude"],
+  { "company": "Anthropic", "verified": true, "verified_app": true, "redact": true, "hosts": ["claude.ai", "claude.com", "anthropic.com", "console.anthropic.com"], "titles": ["Claude"],
     "apps": { "processes": ["claude"], "products": ["Claude"], "packages": ["AnthropicPBC.Claude"] } },
   { "company": "Google Gemini", "verified": true, "redact": true, "hosts": ["gemini.google.com", "bard.google.com", "aistudio.google.com", "notebooklm.google.com", "labs.google", "gemini.google"], "titles": ["Gemini", "Bard", "AI Studio", "NotebookLM", "Gemini Notebook"] },
   { "company": "Microsoft Copilot", "verified": true, "verified_app": true, "redact": true, "hosts": ["copilot.microsoft.com", "m365.cloud.microsoft", "edgeservices.bing.com"], "titles": ["Copilot", "Microsoft Copilot"],
@@ -37,7 +38,7 @@
   { "company": "Phind", "verified": true, "redact": true, "hosts": ["phind.com"], "titles": ["Phind"] },
   { "company": "DeepAI", "verified": true, "redact": true, "hosts": ["deepai.org"], "titles": ["DeepAI"] },
   { "company": "AI21 Labs", "verified": true, "redact": true, "hosts": ["ai21.com", "studio.ai21.com"], "titles": ["AI21", "Jamba", "Wordtune"] },
-  { "company": "Together AI", "verified": true, "redact": true, "hosts": ["together.ai", "together.xyz", "api.together.xyz"], "titles": ["Together AI"] },
+  { "company": "Together AI", "verified": true, "redact": true, "hosts": ["together.ai", "together.xyz"], "titles": ["Together AI"] },
   { "company": "Fireworks AI", "verified": true, "redact": true, "hosts": ["fireworks.ai"], "titles": ["Fireworks AI"] },
   { "company": "OpenRouter", "verified": true, "redact": true, "hosts": ["openrouter.ai"], "titles": ["OpenRouter"] },
   { "company": "Replicate", "verified": true, "redact": true, "hosts": ["replicate.com"], "titles": ["Replicate"] },
@@ -126,7 +127,7 @@
   { "company": "Sakana AI", "redact": true, "hosts": ["sakana.ai"], "titles": ["Sakana"] },
   { "company": "ELYZA", "redact": true, "hosts": ["elyza.ai"], "titles": ["ELYZA"] },
   { "company": "Yandex Alice", "redact": true, "hosts": ["alice.yandex.ru", "ya.ru", "300.ya.ru"], "titles": ["YandexGPT", "Alice", "Алиса", "Нейро"] },
-  { "company": "Sber GigaChat", "redact": true, "hosts": ["giga.chat", "gigachat.ru", "developers.sber.ru", "fusionbrain.ai"], "titles": ["GigaChat", "ГигаЧат", "Kandinsky", "Кандинский"] },
+  { "company": "Sber GigaChat", "redact": true, "hosts": ["giga.chat", "gigachat.ru", "fusionbrain.ai"], "titles": ["GigaChat", "ГигаЧат", "Kandinsky", "Кандинский"] },
   { "company": "Aleph Alpha", "redact": true, "hosts": ["aleph-alpha.com"], "titles": ["Luminous", "Aleph Alpha"] },
   { "company": "LightOn", "redact": true, "hosts": ["lighton.ai"], "titles": ["LightOn"] },
   { "company": "Silo AI", "redact": true, "hosts": ["silo.ai"], "titles": ["Silo AI"] },
