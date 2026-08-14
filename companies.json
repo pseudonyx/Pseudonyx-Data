@@ -4,13 +4,209 @@
   "update_message": "Pseudonyx 1.5.86 can now tell you what it costs to run on your own computer. A new measurement writes down how much memory and how much time each setting actually uses, on your machine rather than ours, and the answers are published so you can choose settings knowing the trade instead of guessing. The short version: if your computer has 4 GB of memory, set redaction quality to Fast. Every check based on a pattern or a checksum still runs, so emails, phone numbers, bank accounts, cards, national numbers and IP addresses are all still caught. Your saved redactions also stop growing after five days, so the folder they live in settles at a size and stays there. Nothing about detection or redaction changed.",
   "previous_update_message": "Pseudonyx 1.5.85 makes the first screen you ever see easier to read. The consent window now uses the same large title as the rest of the app, its heading and its opening paragraph line up on one left edge instead of two, and the agreement box is taller so you can read a whole clause without scrolling. The optional usage analytics box is now separated from the clauses you have to agree to by a line and the word optional, so it is obvious which ticks are required and which one is your choice. Nothing about detection or redaction changed.",
   "software": {
-    "latest_version": "1.7.16",
+    "latest_version": "1.7.74",
     "download_url": "https://github.com/guillaumedeclercq08040804-rgb/ClipboardGuardian/releases/latest"
   },
   "extension": {
-    "latest_version": "0.10.15",
+    "latest_version": "0.10.40",
     "download_url": "https://github.com/guillaumedeclercq08040804-rgb/ClipboardGuardian/tree/v36/extension"
+  },  "passthrough": {
+    "schema": 1,
+    "version": 1.0,
+
+    "_what_this_is": [
+      "File types Pseudonyx CANNOT redact, and therefore must NOT block. A video, a zip, an mp3 or an",
+      "installer has no text layer this product can rewrite, so refusing the upload buys the user nothing:",
+      "it only stops them working. Anything listed here is passed to the site exactly as they chose it.",
+      "",
+      "IT LIVES IN companies.json ON PURPOSE. This is the file the application already re-syncs every day, so",
+      "a format we discover we cannot redact can be let through by a list update rather than by a release. It",
+      "used to be a standalone passthrough-extensions.json with a byte-identical copy inside the extension,",
+      "kept in step by a script and a drift test - two files, a tool and a test to say one thing.",
+      "",
+      "THE BROWSER EXTENSION DOES NOT READ THIS FILE. It asks the application, which serves the list already",
+      "FILTERED through its own classifier. That matters because this file is remote-updatable: a bad list",
+      "push that added .pdf here could otherwise have sent documents to a model untouched. The application",
+      "drops any entry it recognises as redactable and logs it, so neither reader can be talked into a leak.",
+      "",
+      "Re-read whenever this file changes, not once at startup. The extension re-pulls within one keep-alive",
+      "ping, because the ping already reports a stamp of these policy files and it already re-pulls on change."
+    ],
+
+    "_the_one_rule": [
+      "ONLY put an extension here if we genuinely cannot redact it. This list is a hole in the protection by",
+      "design, so every entry must earn its place by being impossible rather than merely inconvenient.",
+      "",
+      "In particular, DO NOT ADD:",
+      "  - Images (.png .jpg .webp .gif .bmp .tiff .heic ...). Pseudonyx redacts these: it reads text out of",
+      "    them with OCR and paints over it, and it detects and covers faces. They are among the most",
+      "    valuable things it protects, not an exception to it.",
+      "  - Documents (.pdf .docx .xlsx .pptx .odt .rtf .epub ...). All extracted and redacted.",
+      "  - Anything text-shaped at all (.txt .csv .json .srt .vcf .sql, source code, config, notebooks).",
+      "    See FileClassifier: unknown extensions that merely LOOK like text are redacted in place too, so",
+      "    adding a text format here would create a leak in a format we handle perfectly well.",
+      "",
+      "If you are unsure whether something is redactable, leave it out. Leaving it out means it is checked",
+      "and possibly refused, which is the safe direction; putting it in means it goes to the AI untouched.",
+      "",
+      "AND NO AMBIGUOUS EXTENSIONS. Several extensions mean two unrelated things, and where one meaning is a",
+      "text format the entry has to go. Four were removed after being caught by a test rather than by eye:",
+      "  .ts   MPEG transport stream, but overwhelmingly more often TypeScript source",
+      "  .asm  a CATIA assembly, but also assembly-language source",
+      "  .vhd  a Hyper-V disk image, but also VHDL source",
+      "  .cue  a CD cue sheet, but also the CUE configuration language - and cue sheets are plain text anyway",
+      "The application would have survived all four, because FileClassifier checks its text tiers BEFORE this",
+      "list. So would the extension NOW, because the application filters the list before serving it. Neither",
+      "of those is a reason to leave a wrong entry here: a filtered-out entry is a line that reads as",
+      "protection-off and does nothing, and the next person to look will not know which of the two it is. A",
+      "test asserts the intersection with the redactable tiers is empty.",
+      "",
+      "One extension, one dot. An entry like \".sav.spss\" matches nothing at all - both readers key on the",
+      "final extension - so it is not a harmless extra, it is a line that looks like protection and is not."
+    ],
+
+    "groups": {
+      "video": {
+        "why": "No text layer we can rewrite. Redacting a moving image is a different product.",
+        "extensions": [
+          ".mp4", ".m4v", ".mov", ".qt", ".avi", ".wmv", ".asf", ".mkv", ".mk3d", ".webm", ".flv", ".f4v",
+          ".mpg", ".mpeg", ".mpe", ".m1v", ".m2v", ".mp2", ".mpv", ".m2ts", ".mts", ".vob", ".ogv",
+          ".3gp", ".3g2", ".rm", ".rmvb", ".divx", ".xvid", ".mxf", ".dv", ".braw", ".r3d", ".prproj", ".fcpxml"
+        ]
+      },
+
+      "audio": {
+        "why": "Speech is not text until it is transcribed, and we do not transcribe. Nothing to rewrite.",
+        "extensions": [
+          ".mp3", ".m4a", ".m4b", ".m4p", ".aac", ".wav", ".wave", ".flac", ".alac", ".ogg", ".oga", ".opus",
+          ".wma", ".aiff", ".aif", ".aifc", ".ape", ".wv", ".dsf", ".dff", ".amr", ".au", ".snd", ".ra",
+          ".mid", ".midi", ".kar", ".caf", ".voc", ".gsm", ".mmf",
+          ".aup", ".aup3", ".sesx", ".als", ".flp", ".logicx", ".band", ".ptx", ".rpp"
+        ]
+      },
+
+      "archives": {
+        "why": [
+          "A container's own bytes carry nothing to redact, and we do not unpack, redact and repack.",
+          "",
+          "READ THIS BEFORE COPYING THE PATTERN. This group is the one real trade-off in this file: a zip of",
+          "CVs now reaches the AI unredacted where it used to be refused. That is a deliberate decision,",
+          "because refusing archives outright stopped people working and taught them to switch the product",
+          "off, which protects nothing at all. Deleting this group is a one-line change if you decide the",
+          "other way.",
+          "",
+          "Note the packaged DOCUMENT formats that are technically zips - .docx .xlsx .pptx .odt .epub - are",
+          "NOT here. Those are recognised as documents and fully redacted."
+        ],
+        "extensions": [
+          ".zip", ".zipx", ".rar", ".r00", ".7z", ".tar", ".gz", ".tgz", ".bz2", ".tbz", ".tbz2", ".xz", ".txz",
+          ".lz", ".lzma", ".lz4", ".zst", ".zstd", ".br", ".cab", ".arj", ".lha", ".lzh", ".ace", ".arc",
+          ".sit", ".sitx", ".sea", ".z", ".cpio", ".shar", ".pea", ".uue", ".par", ".par2"
+        ]
+      },
+
+      "executables_and_installers": {
+        "why": [
+          "Machine code. Nothing to redact, and rewriting a binary would corrupt it.",
+          "",
+          "Note .obj is NOT here despite being a compiler's object file, because it is also the Wavefront 3D",
+          "format, which is plain text. Ambiguous wins go to the redactable meaning every time: a text .obj",
+          "now gets redacted, and a compiled one gets checked and possibly refused, which is the safe half."
+        ],
+        "extensions": [
+          ".exe", ".dll", ".sys", ".ocx", ".drv", ".com", ".scr", ".cpl", ".msi", ".msp", ".msm", ".msix",
+          ".appx", ".appxbundle", ".msixbundle", ".apk", ".aab", ".ipa", ".xap",
+          ".deb", ".rpm", ".pkg", ".mpkg", ".dmg", ".app", ".run", ".bin", ".elf", ".so", ".dylib", ".a",
+          ".o", ".lib", ".pdb", ".ilk", ".exp", ".class", ".jar", ".war", ".ear", ".pyc", ".pyo",
+          ".pyd", ".whl", ".egg", ".nupkg", ".gem", ".crx", ".xpi", ".wasm"
+        ]
+      },
+
+      "disk_and_system_images": {
+        "why": "Whole filesystems. We cannot open, redact and rebuild one, and the file is usually enormous.",
+        "extensions": [
+          ".iso", ".img", ".vhdx", ".vmdk", ".vdi", ".qcow", ".qcow2", ".hdd", ".ova", ".ovf",
+          ".wim", ".esd", ".swm", ".bin", ".mdf", ".mds", ".nrg", ".ccd", ".toast", ".sparseimage",
+          ".dsk", ".raw"
+        ]
+      },
+
+      "fonts": {
+        "why": "Glyph outlines and metrics tables. No user-authored content at all, and no text layer to rewrite.",
+        "extensions": [".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", ".eot", ".pfb", ".pfm", ".fon", ".fnt", ".bdf", ".pcf"]
+      },
+
+      "encrypted_and_signed": {
+        "why": [
+          "We cannot read the contents, so we cannot redact them - and altering the bytes would break the",
+          "signature or the decryption. These are also, by definition, already protected."
+        ],
+        "extensions": [
+          ".gpg", ".pgp", ".enc", ".aes", ".axx", ".kdbx", ".kdb", ".p12", ".pfx", ".jks",
+          ".keystore", ".key", ".crypt", ".vault", ".age"
+        ]
+      },
+
+      "binary_data_and_databases": {
+        "why": [
+          "Opaque binary containers. Text SQL dumps (.sql, .ddl) are NOT here - those are redacted in place.",
+          "This is only the compiled/binary forms we cannot rewrite safely."
+        ],
+        "extensions": [
+          ".db", ".db3", ".sqlite", ".sqlite3", ".mdb", ".accdb", ".ldb", ".myd", ".myi", ".frm", ".ibd",
+          ".dbf", ".fdb", ".gdb", ".nsf", ".edb", ".realm", ".leveldb", ".rocksdb",
+          ".parquet", ".orc", ".feather", ".arrow", ".avro", ".pb", ".protobuf", ".msgpack", ".bson",
+          ".npy", ".npz", ".mat", ".sav", ".dta", ".rdata", ".rds", ".pickle", ".pkl", ".joblib", ".h5", ".hdf5"
+        ]
+      },
+
+      "machine_learning_models": {
+        "why": "Weights. Enormous, opaque, and nothing a person wrote.",
+        "extensions": [
+          ".onnx", ".pt", ".pth", ".ckpt", ".safetensors", ".gguf", ".ggml", ".tflite",
+          ".caffemodel", ".params", ".mlmodel", ".mlpackage", ".engine", ".plan", ".trt"
+        ]
+      },
+
+      "design_cad_and_3d": {
+        "why": [
+          "Proprietary BINARY geometry. Note .svg is NOT here: it is XML and is redacted in place.",
+          "",
+          "The interchange formats that are TEXT by specification were removed for the same reason as .svg -",
+          ".step .stp .iges .igs (ASCII), .gltf (JSON), .dae (XML), .usda (text) and .eps (PostScript). The",
+          "application's LooksLikeText sniff redacts an unknown text file in place, so listing a text format",
+          "here would punch a hole in a format we already handle correctly. .stl and .ply stay because both",
+          "have a binary form that is what tools actually export, and .abc/.usdc/.glb are binary siblings."
+        ],
+        "extensions": [
+          ".psd", ".psb", ".ai", ".indd", ".indt", ".idml", ".sketch", ".fig", ".xd", ".afdesign", ".afphoto",
+          ".afpub", ".cdr", ".emf", ".wmf", ".swf",
+          ".dwg", ".dxb", ".rvt", ".rfa", ".skp", ".3dm", ".catpart", ".catproduct", ".sldprt", ".sldasm",
+          ".ipt", ".iam", ".prt", ".x_t", ".x_b", ".sat", ".jt",
+          ".stl", ".fbx", ".blend", ".c4d", ".max", ".ma", ".mb", ".glb", ".usd",
+          ".usdz", ".usdc", ".abc", ".ply", ".3ds", ".lwo", ".lxo", ".ztl"
+        ]
+      },
+
+      "captured_and_scientific": {
+        "why": [
+          "Instrument and capture formats with no rewritable text layer. RAW photographs are here because we",
+          "cannot re-encode a camera raw without destroying it - unlike ordinary images, which ARE redacted.",
+          "",
+          "The ASCII members were removed for the same reason as the CAD ones: .gcode, .hex, .s19 and .srec",
+          "are plain text, so the application redacts them in place and they must not be waved through."
+        ],
+        "extensions": [
+          ".cr2", ".cr3", ".nef", ".nrw", ".arw", ".srf", ".sr2", ".orf", ".rw2", ".raf", ".pef", ".dng",
+          ".x3f", ".3fr", ".fff", ".iiq", ".mos", ".erf", ".mrw", ".srw", ".kdc", ".dcr",
+          ".dcm", ".dicom", ".nii", ".mnc", ".fits", ".fit", ".cdf", ".nc", ".grib", ".grib2",
+          ".las", ".laz", ".e57", ".pcd", ".bag", ".mcap", ".pcap", ".pcapng", ".etl", ".dmp", ".core",
+          ".sas7bdat", ".xpt", ".rom", ".nds", ".gba"
+        ]
+      }
+    }
   },
+
   "data": [
   { "company": "OpenAI", "verified": true, "verified_app": true, "redact": true, "hosts": ["chat.openai.com", "chatgpt.com", "openai.com", "sora.com", "sora.chatgpt.com"], "titles": ["ChatGPT", "Sora"],
     "apps": { "processes": ["ChatGPT"], "products": ["ChatGPT"], "packages": ["OpenAI.ChatGPT-Desktop"] } },
@@ -110,7 +306,7 @@
   { "company": "Tencent Yuanbao", "redact": true, "hosts": ["yuanbao.tencent.com", "hunyuan.tencent.com"], "titles": ["Hunyuan", "元宝", "混元"] },
   { "company": "iFlytek Spark", "redact": true, "hosts": ["xinghuo.xfyun.cn"], "titles": ["SparkDesk", "讯飞星火"] },
   { "company": "Zhipu ChatGLM", "redact": true, "hosts": ["chatglm.cn", "z.ai", "chat.z.ai", "zhipuai.cn", "bigmodel.cn"], "titles": ["ChatGLM", "智谱清言"] },
-  { "company": "Moonshot Kimi", "redact": true, "hosts": ["kimi.moonshot.cn", "kimi.com"], "titles": ["Kimi"] },
+  { "company": "Moonshot Kimi", "verified": true, "redact": true, "hosts": ["kimi.moonshot.cn", "kimi.com", "www.kimi.com"], "titles": ["Kimi"] },
   { "company": "MiniMax", "redact": true, "hosts": ["hailuoai.com", "minimaxi.com", "talkie-ai.com"], "titles": ["Hailuo", "Talkie", "海螺"] },
   { "company": "01.AI Yi", "redact": true, "hosts": ["01.ai", "lingyiwanwu.com", "wanzhi.com"], "titles": ["万知", "零一万物"] },
   { "company": "SenseTime", "redact": true, "hosts": ["chat.sensetime.com", "sensenova.cn"], "titles": ["SenseChat", "商量", "日日新"] },
