@@ -4,29 +4,44 @@ A background **Windows agent that pseudonymizes GDPR-sensitive data before it le
 It protects three paths:
 
 - **Clipboard** — when you copy text, sensitive spans (names, emails, IBANs, health details, …) are
-  replaced in place with stable tokens like `[EMAIL_1]` or `[PERSON_2]` before you paste.
+  replaced in place with stable tokens like `john.doe@example.com` or `[PERSON_2]` before you paste.
 - **File paste / drag-drop** — files pasted into a protected destination are redacted first; a
   `name.redacted.*` copy is substituted so the original values never travel.
-- **AI-website uploads** — an optional local TLS-intercepting proxy redacts file uploads to a small,
-  precise set of upload endpoints.
+- **AI-website attachments** — the browser extension takes a file **as you attach it** through the file
+  picker on a protected site, has the desktop app redact it, and substitutes the redacted copy before the
+  page ever sees the original. Host-independent, so it does not go stale when a service moves its upload
+  endpoint. If redaction cannot be guaranteed — the file is over the size cap, has no text layer, or the
+  app is not running — the **attachment is refused** rather than sent unredacted, and Pseudonyx says why.
+  Dragging a file onto the composer and pasting one in are covered too. Where a site will not accept a file
+  it did not get from the operating system — some read an API that only a real OS drag can satisfy — the
+  redacted text goes into the message box instead, or waits for one click on the site's own attach button.
+  Either way you are told which happened, and the original never leaves your machine.
+- **AI-website uploads (proxy)** — an optional local TLS-intercepting proxy redacts uploads to a small,
+  precise set of upload endpoints. It is what covers native desktop AI apps; for browsers, the attach-time
+  path above is the primary protection, because an endpoint outside the proxy's list is not merely
+  uninspected — it never reaches Pseudonyx at all.
 - **Downloads (reverse)** — documents downloaded back from an AI site that still contain your tokens are
   restored locally into a `name_unredacted.ext` copy, and the original (still-redacted) download is
   renamed `name_Redacted.ext` so you can tell them apart. **Detection is folder-agnostic (v17):** the true
   Downloads/Desktop/Documents folders and each browser's download directory are watched **recursively** and
-  the decision is made by the download's Mark-of-the-Web origin **or** our own token/fingerprint — so a
+  the decision is made by the download's Mark-of-the-Web origin **or** our own token/[BIO_2] — so a
   redacted file saved to any of those (or a subfolder) is caught with zero setup. There is no manual
   "watched folders" page; a tray **"Un-redact a file…"** action covers anything saved elsewhere.
 - **Images (reverse, true original) — v17** — when we redact an image we keep its **byte-exact original**
-  for 3 days in a **DPAPI-encrypted vault**, keyed by a perceptual fingerprint of the redacted output.
+  for 5 days in a **DPAPI-encrypted vault**, keyed by a perceptual [BIO_2] of the redacted output.
   When that image comes back (downloaded or pasted from an AI site) we restore the **actual original** —
   surviving rename and re-encoding — instead of the older lossy OCR repaint (which is now only a fallback).
+  Those 5 days are a deliberate limit, not an oversight: keeping copies of your pictures longer than needed
+  would work against the point of the product. **Bring the same image back after the window and Pseudonyx
+  says so in a Windows notification** — it names the file and the number of hidden values still showing, so a
+  file that arrives still covered in tokens reads as the retention promise being kept rather than as a bug.
 - **Images (everywhere)** — GDPR-sensitive text *inside images* is redacted with on-device Windows OCR,
   painting tokens over the sensitive words. Wired into **all** paths: a copied screenshot pasted into an
   AI site, image files pasted/dragged, and image uploads — using the same engine as document uploads.
 - **Faces (everywhere)** — human faces in images are covered with an opaque block before the image
   leaves your machine, on the same paths (copy-paste, file paste/drag, uploads), using the on-device
   Windows face detector (no cloud, no model to ship). When the same image returns from an AI site it is
-  restored to the **byte-exact original** via the fingerprint vault — the same reverse path as text.
+  restored to the **byte-exact original** via the [BIO_2] vault — the same reverse path as text.
   On by default; toggle in **Settings ▸ "Face redaction in images"**.
 - **Images (reverse)** — a redacted image coming back from an AI site is restored too: paste a copied
   image into a trusted app, or download one from a companies.json site, and the originals are painted
@@ -34,10 +49,10 @@ It protects three paths:
 
 The reversible mapping is kept **encrypted on your machine (Windows DPAPI)**, so tokens can be
 rehydrated back to the originals when you copy an AI answer back. Each mapping is retained on a **rolling
-2-day window** measured from its last use: a placeholder stays reversible as long as you keep using it,
-and once it has been idle for longer than 2 days it is removed and its number is **recycled** (lowest
-free number first, per GDPR category) so tokens stay short. If you try to un-redact content whose
-placeholders have aged out, Pseudonyx shows a notification that it can no longer be restored.
+5-day window** measured from its last use: a placeholder stays reversible as long as you keep using it.
+After five idle days the mapping is removed and its ordinal is permanently retired, never reassigned to a
+different value. If you try to un-redact content whose placeholders have aged out, Pseudonyx shows a
+notification that it can no longer be restored.
 
 **Also in v16:** a **timed "Pause protection"** snooze (5 / 15 / 60 min) that auto-resumes so you're
 never left unprotected by accident; a one-click **GDPR "Record of Processing" export** (HTML + CSV,
@@ -54,8 +69,8 @@ end-to-end encrypted, withdrawable any time in Settings ▸ Privacy. All outboun
 calls are fail-soft: being offline never revokes access
 or changes your data, and none of them ever carries the personal content you redact.
 
-> Privacy-first by design: detection runs entirely locally, nothing sensitive leaves the machine, and
-> the mapping store is per-user DPAPI-encrypted.
+[GENE_672]
+[GENE_673]
 
 ---
 
@@ -69,8 +84,14 @@ latency budget, so your workflow is unchanged.
 
 The clipboard is watched via a message-only window (`AddClipboardFormatListener`). On each change the
 text runs through a tiered detection pipeline, sensitive spans are swapped for tokens, and the result
-is written back. Files are redacted through the **same** engine at paste time; uploads are redacted
-in-flight by the proxy. Reversal (rehydration) maps tokens back to values.
+is written back. Files are redacted through the **same** engine wherever they enter: at paste time by the
+paste hook, at attach time by the browser extension (streamed to the app in 512 KB chunks over native
+messaging and substituted back into the page once verified), and in flight by the proxy for the upload
+endpoints it decrypts. Reversal (rehydration) maps tokens back to values.
+
+Every path that hands bytes to a third party **fails closed**: if the pipeline cannot vouch for the whole
+file, the bytes are withheld and you are told, rather than sent as-is. The local paste path keeps the
+opposite default, because blocking a user from moving their own data around costs privacy nothing.
 
 **Pre-processing on copy (destination-aware paste).** The moment you copy, redaction runs in the
 **background, in parallel**, and the result is cached in memory so the paste itself is instant — text
@@ -87,10 +108,21 @@ pastes). Copying anything else clears the cached redaction so nothing stale is k
    IBAN (mod-97), card (Luhn), SSN / passport / tax ID / driver's license, IPv4/IPv6, MAC, IMEI,
    advertising/cookie IDs, precise geolocation, raw DNA/RNA, and economic identifiers.
 2. **Context-gated topic lexicons** — opt-in per category. Article 9 special categories (health,
-   religion, political opinion, racial/ethnic origin, trade union, sex life/orientation, criminal,
+   religion, political opinion, racial/ethnic origin, [UNION_3], [SEXLIFE_139]/orientation, criminal,
    biometric) and children's data. A term only matches when a supporting cue is nearby.
-3. **Name/City gazetteers** — fast hash-set lookup (fallback when NER is off).
-4. **ONNX NER (optional)** — a quantized BERT token classifier for open-vocabulary PERSON/CITY.
+3. **Name/City gazetteers** — fast hash-set lookup (fallback when NER is off), and the tier that makes the
+   European claim real. 896 given names covering English, Dutch/Flemish, French and German; 583 towns
+   covering the Benelux in both language variants ([CITY_1331]/[CITY_1332], [CITY_1333]/[CITY_1334], [CITY_1335]/[CITY_1336]) plus the major
+   French, German, Austrian and Swiss cities. A name that is also an ordinary word ("amber", "iris", "jean",
+   Dutch "rein", and "jan" as the month) is excluded from the case-insensitive matcher and still redacts when
+   written as a name, so ordinary Dutch and French prose stays readable.
+4. **Addresses in continental forms** — three street shapes, because the house number is not always in the
+   same place: `[ADDRESS_3240]`, `10 Rue de Rivoli`, and the glued Dutch/German form with the
+   number last, `[ADDRESS_3241]`. Postal codes carry their own evidence: US 5/5+4 and Dutch `[ADDRESS_3242]` on
+   shape alone, and a bare Belgian or Dutch four-digit code only when a known town follows it (`[ADDRESS_3243] [CITY_1331]`)
+   or a label announces it (`postcode`, `PLZ`, `code postal`) — because four digits are a year, an order
+   number and a price far more often than an address.
+5. **ONNX NER (optional)** — a quantized [PERSON_2883] token classifier for open-vocabulary PERSON/CITY.
    Governed by the **Redaction quality** slider in Functions: **Fast** (no heavy model, lists only),
    **Balanced** (NER on shorter text), **Maximum** (NER on more/longer text). Picking a NER tier offers a
    one-time on-device model download if it isn't installed yet. The BIO decoder captures **whole words**:
@@ -118,9 +150,11 @@ so you see what will be redacted before you send. Two independent paths, both **
   If the app becomes unreachable while you're on a protected site, the extension shows a **red in-page
   connection-lost banner** (with a Reconnect button + restart instructions), and the desktop app raises a
   matching warning toast. Host coverage spans the major AI-chat providers — ChatGPT, Gemini, Claude,
-  Copilot, Perplexity, Poe, Mistral, DeepSeek, Hugging Face Chat, Character.AI, Meta.AI, Grok, You.com and
-  Pi. It works **load-unpacked today**; production store publishing + silent force-install are tracked in
-  [`TODO/EXTENSIONS-PRODUCTION-TODO.md`](TODO/EXTENSIONS-PRODUCTION-TODO.md).
+  Copilot, Perplexity, Poe, Mistral, DeepSeek, [PERSON_2833] Chat, Character.AI, Meta.AI, Grok, You.com and
+  Pi. It works **load-unpacked today**; the enterprise self-hosted Chromium package is generated by
+  `tools/package-extension.ps1` and served by the installed app on loopback for managed force-install.
+  Firefox still requires an AMO-signed XPI before its enterprise policy can be claimed as effective. See
+  [`docs/HUMAN-ACTIONS.md`](docs/HUMAN-ACTIONS.md) §6.
 
   ```powershell
   # Register the app as the native-messaging host (writes host manifest + Chrome/Edge/Firefox reg keys)
@@ -133,7 +167,8 @@ so you see what will be redacted before you send. Two independent paths, both **
 
 All requirement and architecture documents live in [`docs/`](docs/):
 
-- Full GDPR Article 4/9 mapping: [`docs/GDPR-PSEUDONYMIZATION-REQUIREMENTS.md`](docs/GDPR-PSEUDONYMIZATION-REQUIREMENTS.md).
+- Exact 24-category/token/channel contract and browser boundaries: [`docs/PERSONAL-DATA-COVERAGE.md`](docs/PERSONAL-DATA-COVERAGE.md).
+- Full GDPR Article 4/9 mapping: [`docs/GDPR-AND-COMPLIANCE.md`](docs/GDPR-AND-COMPLIANCE.md).
 - File-redaction scope and GDPR conformance: [`docs/FILE-REDACTION-REQUIREMENTS.md`](docs/FILE-REDACTION-REQUIREMENTS.md).
 - Exhaustive client design reference: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - Cloud, payments & website architecture (Cloudflare, Stripe, GitHub, Google OAuth): [`docs/CLOUD-WEBSITE-ARCHITECTURE.md`](docs/CLOUD-WEBSITE-ARCHITECTURE.md).
@@ -150,6 +185,10 @@ extension/            Optional cross-browser MV3 extension (live-typing bridge o
 tests/
   Pseudonyx.Tests/      xUnit tests for detection, files, images, proxy, stats, settings, consent,
                         config, licensing/update-check and companies.json remote sync
+  Pseudonyx.E2E/        End-to-end harness, one entry point (run-all.ps1), three tiers:
+                        tier 1 the local editor zoo, tier 2 the live AI-site sweep,
+                        tier 3 real Windows input via FlaUI. Asserts by reading text back
+                        off screenshots with OCR, so it survives site redesigns.
 docs/                          All requirement + architecture docs (client, GDPR, cloud/website)
 consent/CONSENT-AGREEMENT.md   First-launch/update consent agreement (shipped with the exe)
 settings.json                  App-layer settings (theme, strings, window sizes, notifications, logs)
@@ -159,18 +198,54 @@ companies.json                 Company → websites/title-cue seed for the redac
 
 ## Requirements
 
+To **build** it:
+
 - Windows (x64)
-- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- [.NET 8 SDK]([OID_10169])
+
+To **run** it, minimum: Windows 10 x64 (build [ADDRESS_3244]), 2 cores, **4 GB RAM**, **1 GB** free disk. No .NET
+runtime needed, it is bundled. Recommended: 4 cores and 8 GB, which is what the higher-accuracy name model
+wants. On 4 GB, set redaction quality to **Fast**: every pattern-based and checksum-based detection still
+runs, and you save about 90 MB per process and 130 ms per prompt.
+
+[`docs/SYSTEM-REQUIREMENTS.md`](docs/SYSTEM-REQUIREMENTS.md) has the measured detail: CPU time and RAM at
+all 27 slider positions, at 1 to 10,000 redactions, for images and documents, plus why the data folder
+stops growing after 5 days. Re-measure it on any machine with:
+
+```powershell
+powershell -File tools/run-capacity-test.ps1 -KillTray
+```
 
 ## Build & test
 
 ```powershell
 dotnet build Pseudonyx.sln
-dotnet test  Pseudonyx.sln      # 349 tests
+dotnet test  Pseudonyx.sln      # 2875 tests, the release gate
 ```
 
-The optional browser extension has its own Node test suite (`extension/`, jsdom): **64** fast
-unit/integration tests plus an e2e harness — see [`extension/README.md`](extension/README.md).
+The optional browser extension has its own Node test suite (`extension/`, jsdom): **423** fast
+unit/integration tests. See [`extension/README.md`](extension/README.md).
+
+```powershell
+cd extension; npm install; npm test
+```
+
+The end-to-end harness lives in `tests/Pseudonyx.E2E` and has a single entry point. Tier 1 is the local
+editor zoo and runs in seconds against a bundled Chromium with the extension loaded; tier 3 drives real
+Windows input. Tier 2 walks the live AI sites and needs browser profiles you signed into once by hand,
+so it is opt in.
+
+```powershell
+cd tests/Pseudonyx.E2E
+npm install; npm run install-browsers
+powershell -Command "& '.\run-all.ps1' -Tier @(1,3)"   # local gate, no sign-in needed
+powershell -File .\run-all.ps1 -Login                  # one time, sign the profiles in by hand
+powershell -Command "& '.\run-all.ps1' -Tier @(1,2,3)" # full sweep
+```
+
+Pass the tier list as `@(1,3)`, not `1,3`. PowerShell cannot bind a bare comma list to the script's
+`[int[]]` parameter, so `-Tier 1,3` silently arrives empty and every tier is skipped while the run still
+writes a report.
 
 To guard against config drift (settings.json ↔ AppSettings), run the gate manually or install it as a
 git pre-push hook:
@@ -190,7 +265,7 @@ Or launch the built executable detached (recommended for day-to-day use). Pass `
 development so the first-run installer doesn't trigger from the build folder:
 
 ```powershell
-Start-Process -FilePath "src/Pseudonyx.Service/bin/Debug/net8.0-windows10.0.19041.0/win-x64/Pseudonyx.exe" -ArgumentList "--no-setup" -WindowStyle Hidden
+Start-Process -FilePath "src/Pseudonyx.Service/bin/Debug/net8.0-windows10.0.[ADDRESS_3244].0/win-x64/Pseudonyx.exe" -ArgumentList "--no-setup" -[PERSON_2884]
 ```
 
 ## Release package (share with a tester)
@@ -208,7 +283,7 @@ whole `dist\` folder and send it. When the tester runs `Pseudonyx.exe` the **fir
 2. **Boost redaction quality? (opt-in)** — offers the advanced on-device NER model (higher-quality
    name/place detection) and explains the extra memory cost. If accepted, the **model is installed
    first**, before the app, with its own progress bar — by default **downloaded** (~100 MB quantized
-   INT8) from a public Hugging Face URL (`NerModelUrl`/`NerVocabUrl`), or copied from the package when
+   INT8) from a public [PERSON_2833] URL (`NerModelUrl`/`NerVocabUrl`), or copied from the package when
    bundled next to the installer; if declined, nothing extra is installed and the fast built-in
    word lists are used. The choice is saved (Settings ▸ "Higher-accuracy name detection").
 3. **Install** — copies the program per-user to `%LOCALAPPDATA%\Pseudonyx\app` (no admin) with an
@@ -242,7 +317,7 @@ window width (it never wraps to a second row): the freely-viewable tabs first (*
 use · Privacy · License · Activity · Redactions**), then the edit-locked tabs **last**, each marked with a
 padlock (**Functions · Data types · Companies · Blocking**). The locked tabs can be viewed freely; the
 first edit prompts once for the admin password and unlocks all four for the session. When a newer release
-is available, a **Download <version>** button appears in the top-right of the header.
+is available, a **Download <version></version>** button appears in the top-right of the header.
 
 The UI follows the Pseudonyx website's design system: an **absolute-black + electric-blue** palette, a
 static blue **aurora** behind every window with translucent cards on top, restrained motion (toast
@@ -303,13 +378,13 @@ The license carries a **plan** and **role** that decide how settings are protect
   email + that code in the app to change settings; the app validates it server-side
   (`POST /team/validate-code`), which checks the code is current. Non-admins clicking "Generate team
   password" are told an administrator license is required.
-- **Coming soon, Personal, Agentic Shield**: everything an agentic AI pulls from your PC autonomously is
+- **Coming soon, Personal, [PERSON_2885]**: everything an agentic AI pulls from your PC autonomously is
   redacted first, so the AI only ever sees redacted data (future release; shown as "coming soon").
 
-> Requires backend support: the `plan`/`role` fields on the license-check response drive team gating.
-> Absent them, the app behaves as Personal (no password). See
-> [`docs/CLOUD-WEBSITE-ARCHITECTURE.md`](docs/CLOUD-WEBSITE-ARCHITECTURE.md). It remains a tamper
-> gate, not a security boundary.
+[GENE_674]
+[GENE_675]
+[GENE_676]
+[GENE_677]
 
 ### Always-on protection (anti-kill watchdog)
 
@@ -323,13 +398,13 @@ Exit**. (This is inert for local development builds, so it never interferes with
 With the agent running, copy this line, then paste it somewhere:
 
 ```
-Contact Dr. Jane Smith at jane.doe@example.com, SSN 123-45-6789, salary is $85,000
+Contact Dr. [PERSON_2886] at [EMAIL_4152], SSN [NID_11033], salary is [ECON_3636]
 ```
 
 You'll paste back something like:
 
 ```
-[PERSON_1] Dr. [PERSON_2] at [EMAIL_1], SSN [NATIONAL_ID_1], salary is [ECONOMIC_DATA_1]
+[PERSON_1] Dr. [PERSON_2] at john.doe@example.com, SSN [NID_1], salary is eviction
 ```
 
 ## Configuration
@@ -351,18 +426,18 @@ Two JSON files, both editable and hot-loaded at startup:
 
 ## Local files (per-user, under `%LOCALAPPDATA%\Pseudonyx\`)
 
-| File | Contents |
-|------|----------|
-| `mappings.bin` | DPAPI-encrypted reversible token↔original mapping |
-| `runtime.json` | feature toggles (incl. NER on/off + quality-max flag) |
-| `categories.json` | enabled GDPR data categories |
-| `counters.json` | v33: lifetime redaction tallies by channel (survive log trimming) |
-| `redaction-mode.txt` | redaction strength (Soft / Medium / Full) |
-| `sites.json` / `sites-deleted.json` | per-company redact/block policy |
-| `activity.log` | copy/paste provenance (redacted previews only) — rotated at 500→450 MB (v17) |
-| `image-vault/` | v17: DPAPI-encrypted originals of redacted images (3-day TTL, byte-capped) |
-| `consent.json` / `consent.key` | signed consent record + DPAPI-protected signing key |
-| `redacted/` | temporary redacted file copies (size-bounded) |
+| File                                    | Contents                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------ |
+| `mappings.bin`                        | DPAPI-encrypted reversible token↔original mapping                             |
+| `runtime.json`                        | feature toggles (incl. NER on/off + quality-max flag)                          |
+| `categories.json`                     | enabled GDPR data categories                                                   |
+| `counters.json`                       | v33: lifetime redaction tallies by channel (survive log trimming)              |
+| `redaction-mode.txt`                  | redaction strength (Soft / Medium / Full)                                      |
+| `sites.json` / `sites-deleted.json` | per-company redact/block policy                                                |
+| `activity.log`                        | copy/paste provenance (redacted previews only) — rotated at 500→450 MB (v17) |
+| `image-vault/`                        | v17: DPAPI-encrypted originals of redacted images (3-day TTL, byte-capped)     |
+| `consent.json` / `consent.key`      | signed consent record + DPAPI-protected signing key                            |
+| `redacted/`                           | temporary redacted file copies (size-bounded)                                  |
 
 The raw redaction audit ledger (`Pseudonyx-redactions.log`, in your user profile) contains original
 values in plaintext for your own GDPR record-keeping and is likewise rotated.
@@ -372,24 +447,23 @@ values in plaintext for your own GDPR record-keeping and is likewise rotated.
 Event-driven, so **CPU is ~0% when idle** (measured ~0.1%). Memory and latency depend on whether the
 optional ONNX **NER** tier is enabled (open-vocabulary names/locations):
 
-| Path | Gazetteer only (NER off — default when no model is installed) | NER on (fp32 `dslim/bert-base-NER`) |
-|---|---|---|
-| Text redaction (avg end-to-end) | ~115 ms · 1.66 MB/s | **~1180 ms · 0.16 MB/s** (detect = 96–99% NER inference) |
-| Image redaction (avg end-to-end) | ~89 ms | ~310 ms |
-| Working-set RAM | ~0.6 GB (Debug; ~65–80 MB Release, model absent) | **~1.37 GB** (411 MB fp32 model resident) |
-| Idle CPU | ~0.1% | ~0.1% |
+| Path                             | Gazetteer only (NER off — default when no model is installed) | NER on (fp32`dslim/bert-base-NER`)                             |
+| -------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Text redaction (avg end-to-end)  | ~115 ms · 1.66 MB/s                                           | **~1180 ms · 0.16 MB/s** (detect = 96–99% NER inference) |
+| Image redaction (avg end-to-end) | ~89 ms                                                         | ~310 ms                                                          |
+| Working-set RAM                  | ~0.6 GB (Debug; ~65–80 MB Release, model absent)              | **~1.37 GB** (411 MB fp32 model resident)                  |
+| Idle CPU                         | ~0.1%                                                          | ~0.1%                                                            |
 
-> **NER is powerful but heavy.** With the **fp32** model, live copy-paste of name-rich text costs ~1 s
-> and adds ~800 MB RAM — over the sub-second budget for the always-on path. Two mitigations: (1) fetch a
-> **quantized INT8** model or the smaller **multilingual DistilBERT** (`tools/fetch-ner-model.ps1
-> -Model "Davlan/distilbert-base-multilingual-cased-ner-hrl"`) — ~15–80 ms and ~+200–400 MB; (2) leave
-> NER **off** for the live path (the gazetteer tier is fast and open-vocabulary via the ONNX model is
-> best reserved for on-demand **"Redact a file…"**). The repo ships **no** model, so a fresh clone runs
-> the fast gazetteer path until you install one.
+[GENE_678]
+[GENE_679]
+> **quantized INT8** model or the smaller **multilingual DistilBERT** (`tools/fetch-ner-model.ps1 -Model "Davlan/distilbert-base-multilingual-cased-ner-hrl"`) — ~15–80 ms and ~+200–400 MB; (2) leave
+[GENE_680]
+[GENE_681]
+[GENE_682]
 >
-> You can flip NER on/off any time in **Settings ▸ "Higher-accuracy name detection (AI model)"** — ON is
-> more thorough but slower and heavier, OFF is fast and light. Turning it off speeds detection up
-> immediately; the model's memory is released on the next restart.
+[GENE_683]
+[GENE_684]
+[GENE_685]
 
 ```powershell
 powershell -File tools/run-speed-test.ps1   # text+image throughput/latency -> analytics/speed-test-*
@@ -398,7 +472,7 @@ powershell -File tools/measure-usage.ps1     # CPU/RAM/latency under load  -> an
 
 ## Privacy & security notes
 
-- Redaction is local: the personal data you redact never leaves the machine. Pseudonyx sends license/update checks and the companies.json sync, and — **only if you opt in** (off by default; toggle in Settings ▸ Privacy) — periodic **pseudonymous usage analytics** (usage/configuration metadata only, never your redacted content; the insights payload is end-to-end encrypted). See `consent/PRIVACY-NOTICE.md` for the full privacy notice, and [`docs/DPIA.md`](docs/DPIA.md) for the impact assessment.
+- Redaction is local: the personal data you redact never leaves the machine. Pseudonyx sends license/update checks and the companies.json sync, and — **only if you opt in** (off by default; toggle in Settings ▸ Privacy) — periodic **pseudonymous usage analytics** (usage/configuration metadata only, never your redacted content; the insights payload is end-to-end encrypted). See `consent/PRIVACY-NOTICE.md` for the full privacy notice, and [`docs/GDPR-AND-COMPLIANCE.md`](docs/GDPR-AND-COMPLIANCE.md) for the impact assessment.
 - The reversible mapping, the redaction audit ledger and the consent signing key are DPAPI-encrypted (per-user, per-machine). Settings ▸ Privacy also offers a **"Verify a file's redaction"** check (the automated copy-paste test) and one-click deletion of history, reversible data and consent.
 - The reversible mapping and the consent signing key are DPAPI-encrypted (per-user, per-machine).
 - Detection is heuristic — it reduces exposure but is not a guarantee. Review before sharing highly
@@ -411,7 +485,10 @@ powershell -File tools/measure-usage.ps1     # CPU/RAM/latency under load  -> an
   specs (CPU, cores, RAM, architecture) so the Pseudonyx team can troubleshoot remotely. They never include
   your redacted content, license key, or the reversible mapping.
 - The upload proxy is opt-in and only decrypts a precise allow-list of upload endpoints; every other
-  host is blind-tunneled, and a crash/exit leaves the internet working (PAC `; DIRECT` fallback).
+  host is blind-tunneled, and a crash/exit leaves the internet working (PAC `; DIRECT` fallback). The flip
+  side of that narrowness, stated plainly: an upload to an endpoint outside the list does not reach the
+  proxy at all, so it is neither inspected nor logged. That is why browser attachments are protected by the
+  extension at attach time instead of by the host list.
 
 ## License
 
