@@ -1,8 +1,8 @@
-﻿{
-  "version": 10.0,
-  "last_updated": "2026-08-31",
-  "update_message": "Pseudonyx 1.5.86 can now tell you what it costs to run on your own computer. A new measurement writes down how much memory and how much time each setting actually uses, on your machine rather than ours, and the answers are published so you can choose settings knowing the trade instead of guessing. The short version: if your computer has 4 GB of memory, set redaction quality to Fast. Every check based on a pattern or a checksum still runs, so emails, phone numbers, bank accounts, cards, national numbers and IP addresses are all still caught. Your saved redactions also stop growing after five days, so the folder they live in settles at a size and stays there. Nothing about detection or redaction changed.",
-  "previous_update_message": "Pseudonyx 1.5.85 makes the first screen you ever see easier to read. The consent window now uses the same large title as the rest of the app, its heading and its opening paragraph line up on one left edge instead of two, and the agreement box is taller so you can read a whole clause without scrolling. The optional usage analytics box is now separated from the clauses you have to agree to by a line and the word optional, so it is obvious which ticks are required and which one is your choice. Nothing about detection or redaction changed.",
+{
+  "version": 10.1,
+  "last_updated": "2026-09-04",
+  "update_message": "Pseudonyx 1.10.60 fixes four things reported from a real install. Attaching several documents at once to an AI website now works: they were all being checked and hidden correctly, and then not arriving at the website at all, because the two halves of the transfer disagreed about how long to wait and because some websites replace the file box while a batch is still going. The small message that appears on the page is readable again — its second line was blue text on a blue glow. You no longer get a Windows pop-up repeating a count the page has just shown you; it is said once, by whichever surface you were already looking at, and everything is still counted in your Insights. And in the first few minutes after installing, when the browser has not yet picked up the Pseudonyx extension, the message now tells you the one thing that ends the wait: close the browser and open it again. Nothing about detection or redaction changed, and nothing is unblocked earlier than before.",
+  "previous_update_message": "Pseudonyx 1.5.86 can now tell you what it costs to run on your own computer. A new measurement writes down how much memory and how much time each setting actually uses, on your machine rather than ours, and the answers are published so you can choose settings knowing the trade instead of guessing. The short version: if your computer has 4 GB of memory, set redaction quality to Fast. Every check based on a pattern or a checksum still runs, so emails, phone numbers, bank accounts, cards, national numbers and IP addresses are all still caught. Your saved redactions also stop growing after five days, so the folder they live in settles at a size and stays there. Nothing about detection or redaction changed.",
   "software": {
     "_note": [
       "download_url MUST start with licensing.downloadUrlAllowedPrefix in settings.json, currently",
@@ -27,11 +27,11 @@
       "now, because this URL has been hand-edited and left stale before - it sat at 1.10.22 while",
       "latest_version said 1.10.24, so an install was told one version and handed another."
     ],
-    "latest_version": "1.10.54",
-    "download_url": "https://downloads.pseudonyx.org/releases/1.10.54/Pseudonyx-1.10.54-Setup.exe"
+    "latest_version": "1.10.60",
+    "download_url": "https://downloads.pseudonyx.org/releases/1.10.60/Pseudonyx-1.10.60-Setup.exe"
   },
   "extension": {
-    "latest_version": "0.11.27",
+    "latest_version": "0.11.29",
     "download_url": "https://github.com/guillaumedeclercq08040804-rgb/ClipboardGuardian/tree/v36/extension"
   },
   "browsers": {
