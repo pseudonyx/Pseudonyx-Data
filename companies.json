@@ -375,6 +375,7 @@
   { "company": "DeepSeek", "service_id": "deepseek", "verified": true, "redact": true,
     "hosts": ["deepseek.com", "chat.deepseek.com"], "titles": ["DeepSeek"] },
 
+  { "company": "facebook", "service_id": "Facebook", "blocked": true, "redact": false, "hosts": ["https://www.facebook.com", "facebook.com"], "titles": ["fb", "facebo"] },
   { "company": "01.AI Yi", "service_id": "01-ai-yi", "blocked": true, "redact": false, "hosts": ["01.ai", "lingyiwanwu.com", "wanzhi.com"], "titles": ["万知", "零一万物"] },
   { "company": "360 AI", "service_id": "360-ai", "blocked": true, "redact": false, "hosts": ["chat.360.com", "bot.360.com"], "titles": ["360智脑", "纳米AI"] },
   { "company": "Abridge", "service_id": "abridge", "blocked": true, "redact": false, "hosts": ["abridge.com"], "titles": ["Abridge"] },
